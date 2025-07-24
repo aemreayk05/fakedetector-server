@@ -8,4 +8,6 @@ services:
       - key: HF_HOME
         value: /tmp/huggingface
       - key: TRANSFORMERS_CACHE
-        value: /tmp/transformers
+        value: /tmp/huggingface
+build:
+  pythonVersion: 3.10
