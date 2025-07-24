@@ -2,12 +2,10 @@ services:
   - type: web
     name: fakedetector-api
     env: python
+    plan: free
+    region: frankfurt
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    startCommand: python app.py
     envVars:
-      - key: HF_HOME
-        value: /tmp/huggingface
-      - key: TRANSFORMERS_CACHE
-        value: /tmp/huggingface
-build:
-  pythonVersion: 3.10.13
+      - key: HF_TOKEN
+        value: your_huggingface_token_here
