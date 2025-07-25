@@ -9,6 +9,12 @@ import time
 
 app = Flask(__name__)  # ← BU SATIR EKSİK SENDE
 CORS(app)
+HF_API_URL = "https://api-inference.huggingface.co/models/haywoodsloan/ai-image-detector-deploy"
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+headers = {
+    "Authorization": f"Bearer {HF_TOKEN}"
+}
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
