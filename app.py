@@ -67,6 +67,9 @@ def model_info():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/analyze", methods=["POST"])
+# ... existing code ...
+
+@app.route("/analyze", methods=["POST"])
 def analyze():
     try:
         logger.info("🔍 Analiz isteği alındı")
@@ -93,8 +96,7 @@ def analyze():
             logger.error(f"❌ Base64 decode hatası: {e}")
             return jsonify({"error": f"Görsel decode hatası: {str(e)}"}), 400
 
-        # ✅ DÜZELTİLDİ: JSON formatında gönder
-        # Base64'ü tekrar encode et (Hugging Face JSON formatı için)
+        # ✅ HUGGING FACE API'YE GÖNDER
         base64_image = base64.b64encode(image_bytes).decode('utf-8')
         
         payload = {
@@ -104,7 +106,6 @@ def analyze():
         logger.info(f"📤 Hugging Face API'ye gönderiliyor...")
         logger.info(f"📤 URL: {HF_API_URL}")
         logger.info(f"�� Token: {HF_TOKEN[:10]}..." if len(HF_TOKEN) > 10 else "�� Token: Geçersiz")
-        logger.info(f"📦 Payload boyutu: {len(str(payload))} characters")
         
         response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=60)
 
@@ -129,15 +130,27 @@ def analyze():
             logger.info(f"�� Result 1: {result1}")
             logger.info(f"�� Result 2: {result2}")
 
-            if 'FAKE' in result1['label'].upper():
+            # ✅ DÜZELTİLDİ: Doğru mantık
+            # artificial = sahte, real = gerçek
+            if 'artificial' in result1['label'].lower():
                 fake_prob = result1['score'] * 100
                 real_prob = result2['score'] * 100
+                logger.info(f"�� Artificial (Sahte) skoru: {fake_prob}%")
+                logger.info(f"📊 Real (Gerçek) skoru: {real_prob}%")
             else:
                 real_prob = result1['score'] * 100
                 fake_prob = result2['score'] * 100
+                logger.info(f"📊 Real (Gerçek) skoru: {real_prob}%")
+                logger.info(f"�� Artificial (Sahte) skoru: {fake_prob}%")
 
-            prediction = "Gerçek" if real_prob > fake_prob else "Sahte"
-            confidence = max(real_prob, fake_prob)
+            # ✅ DÜZELTİLDİ: Doğru tahmin
+            prediction = "Sahte" if fake_prob > real_prob else "Gerçek"
+            confidence = max(fake_prob, real_prob)
+            
+            logger.info(f"🎯 Tahmin: {prediction} (Güven: {confidence}%)")
+            logger.info(f"�� Sahte olasılığı: {fake_prob}%")
+            logger.info(f"📊 Gerçek olasılığı: {real_prob}%")
+            
         else:
             logger.warning(f"⚠️ Beklenmeyen response format: {result}")
             prediction = "Bilinmiyor"
@@ -154,7 +167,11 @@ def analyze():
             },
             "model_used": "haywoodsloan/ai-image-detector-deploy",
             "model_info": "SwinV2-based AI vs Real detection",
-            "processing_time": time.time()
+            "processing_time": time.time(),
+            "raw_scores": {
+                "artificial": fake_prob,
+                "real": real_prob
+            }
         }
         
         logger.info(f"✅ Analiz tamamlandı: {prediction} ({confidence}%)")
@@ -168,6 +185,8 @@ def analyze():
             "message": str(e),
             "traceback": traceback.format_exc()
         }), 500
+
+# ... rest of the code ...
 
 @app.route("/", methods=["GET"])
 def home():
