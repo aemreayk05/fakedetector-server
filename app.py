@@ -1,3 +1,15 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import requests
+import os
+from PIL import Image
+import io
+import base64
+import time
+
+app = Flask(__name__)  # ← BU SATIR EKSİK SENDE
+CORS(app)
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
     try:
