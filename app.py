@@ -27,7 +27,8 @@ if not HF_TOKEN:
     HF_TOKEN = "hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # Fallback token
 
 headers = {
-    "Authorization": f"Bearer {HF_TOKEN}"
+    "Authorization": f"Bearer {HF_TOKEN}",
+    "Content-Type": "application/json"  # ✅ JSON formatı için
 }
 
 logger.info(f"✅ Hugging Face API yapılandırıldı: {HF_API_URL}")
@@ -92,14 +93,20 @@ def analyze():
             logger.error(f"❌ Base64 decode hatası: {e}")
             return jsonify({"error": f"Görsel decode hatası: {str(e)}"}), 400
 
-        # ✅ HUGGING FACE API'YE GÖNDER
-        files = {"file": ("image.png", image_bytes, "image/png")}
+        # ✅ DÜZELTİLDİ: JSON formatında gönder
+        # Base64'ü tekrar encode et (Hugging Face JSON formatı için)
+        base64_image = base64.b64encode(image_bytes).decode('utf-8')
+        
+        payload = {
+            "inputs": base64_image
+        }
         
         logger.info(f"📤 Hugging Face API'ye gönderiliyor...")
         logger.info(f"📤 URL: {HF_API_URL}")
         logger.info(f"�� Token: {HF_TOKEN[:10]}..." if len(HF_TOKEN) > 10 else "�� Token: Geçersiz")
+        logger.info(f"📦 Payload boyutu: {len(str(payload))} characters")
         
-        response = requests.post(HF_API_URL, headers=headers, files=files, timeout=60)
+        response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=60)
 
         logger.info(f"�� Response status: {response.status_code}")
         
